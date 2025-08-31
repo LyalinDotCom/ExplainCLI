@@ -30,6 +30,14 @@ export const App: React.FC<AppProps> = ({ config }) => {
     privacyConsent: false,
     loading: false,
   });
+  
+  const [scanProgress, setScanProgress] = useState({
+    filesScanned: 0,
+    totalFiles: 0,
+    currentFile: '',
+    entryPoints: 0,
+    frameworks: [] as string[],
+  });
 
   useInput((input: string, key: any) => {
     if (key.escape || (key.ctrl && input === 'c')) {
@@ -81,7 +89,7 @@ export const App: React.FC<AppProps> = ({ config }) => {
           />
         );
       case 'scanning':
-        return <ScanningScreen />;
+        return <ScanningScreen progress={scanProgress} />;
       case 'overview':
         return (
           <OverviewScreen

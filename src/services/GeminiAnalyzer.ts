@@ -8,11 +8,13 @@ import type {
   ArchitectureOverview 
 } from '../types/index.js';
 import { SecurityService } from './SecurityService.js';
+import { CodeTracer } from './CodeTracer.js';
 
 export class GeminiAnalyzer {
   private genAI: GoogleGenerativeAI;
   private model: any;
   private security: SecurityService;
+  private codeTracer: CodeTracer;
 
   constructor(private config: Config) {
     this.genAI = new GoogleGenerativeAI(config.apiKey);
@@ -20,6 +22,7 @@ export class GeminiAnalyzer {
       model: 'gemini-2.5-pro'
     });
     this.security = new SecurityService();
+    this.codeTracer = new CodeTracer();
   }
 
   async analyze(
@@ -27,6 +30,9 @@ export class GeminiAnalyzer {
     project: IndexedProject,
     mode: AnalysisMode
   ): Promise<AnalysisResult> {
+    // First, trace the actual code execution path
+    const walkthrough = await this.codeTracer.traceExecutionPath(question, project);
+    
     // Prepare context based on mode
     const context = mode === 'deep' 
       ? await this.prepareDeepContext(project, question)
@@ -38,13 +44,19 @@ export class GeminiAnalyzer {
     // Build the prompt
     const prompt = this.buildPrompt(question, safeContext, mode);
 
-    // Send to Gemini
+    // Send to Gemini for overview and answer
     const result = await this.model.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
 
-    // Parse the response into structured format
-    return this.parseResponse(text, project);
+    // Parse the response and combine with real walkthrough
+    const parsed = this.parseResponse(text, project);
+    
+    // Use the real traced walkthrough instead of AI-generated one
+    return {
+      ...parsed,
+      walkthrough: walkthrough.length > 0 ? walkthrough : parsed.walkthrough,
+    };
   }
 
   private async prepareBestEffortContext(

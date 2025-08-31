@@ -1,22 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Box, Text } from 'ink';
 import Spinner from 'ink-spinner';
 
-export const ScanningScreen: React.FC = () => {
-  const [progress, setProgress] = useState(0);
-  const [currentFile, setCurrentFile] = useState('');
-  const [stats, setStats] = useState({
+interface ScanningScreenProps {
+  progress?: {
+    filesScanned: number;
+    totalFiles: number;
+    currentFile: string;
+    entryPoints: number;
+    frameworks: string[];
+  };
+}
+
+export const ScanningScreen: React.FC<ScanningScreenProps> = ({ progress: scanProgress }) => {
+  const progress = scanProgress?.totalFiles ? scanProgress.filesScanned / scanProgress.totalFiles : 0;
+  const stats = scanProgress || {
     filesScanned: 0,
     entryPoints: 0,
     frameworks: [],
-  });
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setProgress(prev => Math.min(prev + 0.1, 1));
-    }, 500);
-    return () => clearInterval(interval);
-  }, []);
+  };
 
   return (
     <Box flexDirection="column" paddingY={2}>
@@ -34,10 +36,14 @@ export const ScanningScreen: React.FC = () => {
       </Box>
 
       <Box flexDirection="column" marginBottom={2}>
-        <Text>Files scanned: <Text color="cyan">{stats.filesScanned}</Text></Text>
+        <Text>Files scanned: <Text color="cyan">{stats.filesScanned}</Text>
+          {scanProgress?.totalFiles ? ` / ${scanProgress.totalFiles}` : ''}</Text>
         <Text>Entry points found: <Text color="green">{stats.entryPoints}</Text></Text>
-        {currentFile && (
-          <Text color="gray">Currently: {currentFile}</Text>
+        {stats.frameworks.length > 0 && (
+          <Text>Frameworks detected: <Text color="yellow">{stats.frameworks.join(', ')}</Text></Text>
+        )}
+        {scanProgress?.currentFile && (
+          <Text color="gray">Currently: {scanProgress.currentFile}</Text>
         )}
       </Box>
 

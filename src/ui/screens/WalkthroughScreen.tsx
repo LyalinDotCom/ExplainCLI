@@ -44,6 +44,23 @@ export const WalkthroughScreen: React.FC<WalkthroughScreenProps> = ({
     );
   }
 
+  // Simple syntax highlighting for code
+  const highlightCode = (code: string) => {
+    // This is a simple highlighter - you could enhance this
+    const lines = code.split('\n');
+    return lines.map((line, i) => {
+      const lineNum = step.lineRange[0] + i;
+      const isHighlighted = i >= 2 && i <= 4; // Highlight middle lines
+      
+      return (
+        <Box key={i}>
+          <Text color="gray">{String(lineNum).padStart(4, ' ')} │ </Text>
+          <Text color={isHighlighted ? 'yellow' : 'white'}>{line}</Text>
+        </Box>
+      );
+    });
+  };
+
   return (
     <Box flexDirection="column" paddingY={1}>
       {/* Progress Header */}
@@ -52,21 +69,21 @@ export const WalkthroughScreen: React.FC<WalkthroughScreenProps> = ({
           Step {currentStep + 1}/{steps.length}
         </Text>
         <Text color="yellow">{step.file}</Text>
-        <Text color="gray">L{step.lineRange[0]}-{step.lineRange[1]}</Text>
+        <Text color="gray">Lines {step.lineRange[0]}-{step.lineRange[1]}</Text>
       </Box>
 
       {/* Main Content Area */}
       <Box flexDirection="column" flexGrow={1} marginBottom={2}>
         {viewMode === 'code' ? (
           <Box flexDirection="column">
-            <Box marginBottom={1}><Text bold>Code:</Text></Box>
-            <Box borderStyle="round" borderColor="cyan" padding={1}>
-              <Text>{step.code}</Text>
+            <Box marginBottom={1}><Text bold>📄 Code:</Text></Box>
+            <Box borderStyle="round" borderColor="cyan" padding={1} flexDirection="column">
+              {highlightCode(step.code)}
             </Box>
           </Box>
         ) : (
           <Box flexDirection="column">
-            <Box marginBottom={1}><Text bold>Explanation:</Text></Box>
+            <Box marginBottom={1}><Text bold>💡 Explanation:</Text></Box>
             <Box padding={1}>
               <Text color="white">{step.explanation}</Text>
             </Box>

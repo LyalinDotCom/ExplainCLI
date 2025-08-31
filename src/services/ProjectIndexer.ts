@@ -8,12 +8,26 @@ export class ProjectIndexer {
 
   async indexProject(
     rootDir: string,
-    filters: { include: string[]; exclude: string[] }
+    filters: { include: string[]; exclude: string[] },
+    onProgress?: (progress: any) => void
   ): Promise<IndexedProject> {
     const projectName = path.basename(rootDir);
-    const files = await this.discoverFiles(rootDir, filters);
+    
+    // Discover files with progress
+    const files = await this.discoverFiles(rootDir, filters, onProgress);
+    
+    // Find entry points and report
     const entryPoints = this.findEntryPoints(files);
+    if (onProgress) {
+      onProgress({ entryPoints: entryPoints.length });
+    }
+    
+    // Detect frameworks and report
     const frameworks = await this.detectFrameworks(rootDir, files);
+    if (onProgress) {
+      onProgress({ frameworks });
+    }
+    
     const languages = this.detectLanguages(files);
     const importGraph = await this.buildImportGraph(files);
 
@@ -33,7 +47,8 @@ export class ProjectIndexer {
 
   private async discoverFiles(
     rootDir: string,
-    filters: { include: string[]; exclude: string[] }
+    filters: { include: string[]; exclude: string[] },
+    onProgress?: (progress: any) => void
   ): Promise<ProjectFile[]> {
     // Use the patterns directly without joining with rootDir
     const patterns = filters.include;
@@ -48,8 +63,14 @@ export class ProjectIndexer {
     });
 
     const files: ProjectFile[] = [];
+    
+    // Report total files
+    if (onProgress) {
+      onProgress({ totalFiles: filePaths.length });
+    }
 
-    for (const filePath of filePaths) {
+    for (let i = 0; i < filePaths.length; i++) {
+      const filePath = filePaths[i];
       const fullPath = path.join(rootDir, filePath);
       const stats = await fs.stat(fullPath);
 
@@ -79,6 +100,22 @@ export class ProjectIndexer {
         content,
         preview,
         isEntry: this.isEntryPoint(filePath),
+      });
+      
+      // Report progress
+      if (onProgress && i % 10 === 0) {
+        onProgress({ 
+          filesScanned: i + 1,
+          currentFile: filePath 
+        });
+      }
+    }
+    
+    // Final progress update
+    if (onProgress) {
+      onProgress({ 
+        filesScanned: filePaths.length,
+        currentFile: '' 
       });
     }
 

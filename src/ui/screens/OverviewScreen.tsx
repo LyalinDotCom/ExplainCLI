@@ -14,7 +14,7 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
   onQA,
 }) => {
   useInput((input: string) => {
-    if (input === 'w') {
+    if (input === 'w' || input === ' ') {
       onWalkthrough();
     } else if (input === 'q') {
       onQA();
@@ -65,9 +65,15 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
       </Box>
 
       <Box marginTop={3} flexDirection="column">
-        <Text bold>Actions:</Text>
-        <Text color="green">  [w] Begin Walkthrough - Step through the execution flow</Text>
-        <Text color="blue">  [q] Q&A Mode - Ask follow-up questions</Text>
+        <Text bold>🎯 Ready to explore!</Text>
+        <Box marginTop={1}>
+          <Text color="green" bold>Press [w] or Space</Text>
+          <Text> to begin step-by-step code walkthrough</Text>
+        </Box>
+        <Box>
+          <Text color="blue" bold>Press [q]</Text>
+          <Text> for Q&A mode to ask follow-up questions</Text>
+        </Box>
       </Box>
     </Box>
   );
