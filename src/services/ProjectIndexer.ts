@@ -35,7 +35,8 @@ export class ProjectIndexer {
     rootDir: string,
     filters: { include: string[]; exclude: string[] }
   ): Promise<ProjectFile[]> {
-    const patterns = filters.include.map(p => path.join(rootDir, p));
+    // Use the patterns directly without joining with rootDir
+    const patterns = filters.include;
     const ignorePatterns = filters.exclude;
 
     const filePaths = await globby(patterns, {

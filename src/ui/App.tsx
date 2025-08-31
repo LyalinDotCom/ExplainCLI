@@ -3,7 +3,6 @@ import { Box, useInput, useApp } from 'ink';
 import type { Config, AppState, ScreenState, AnalysisMode } from '../types/index.js';
 import { GlobalLayout } from './layouts/GlobalLayout.js';
 import { HomeScreen } from './screens/HomeScreen.js';
-import { PrivacyPreviewScreen } from './screens/PrivacyPreviewScreen.js';
 import { ScanningScreen } from './screens/ScanningScreen.js';
 import { OverviewScreen } from './screens/OverviewScreen.js';
 import { WalkthroughScreen } from './screens/WalkthroughScreen.js';
@@ -25,8 +24,8 @@ export const App: React.FC<AppProps> = ({ config }) => {
     question: '',
     currentStep: 0,
     filters: {
-      include: ['**/*'],
-      exclude: ['node_modules/**', '.git/**', 'dist/**', 'build/**'],
+      include: ['**/*.{js,jsx,ts,tsx,py,java,go,rs,cpp,c,cs,rb,php,swift,kt,json,yaml,yml,toml,md}'],
+      exclude: ['**/node_modules/**', '**/.git/**', '**/dist/**', '**/build/**', '**/.next/**', '**/coverage/**'],
     },
     privacyConsent: false,
     loading: false,
@@ -51,14 +50,10 @@ export const App: React.FC<AppProps> = ({ config }) => {
   }, []);
 
   const handleQuestionSubmit = useCallback(async (question: string) => {
-    setState(prev => ({ ...prev, question, screen: 'privacy-preview' }));
-  }, []);
-
-  const handlePrivacyConsent = useCallback(async () => {
-    setState(prev => ({ ...prev, privacyConsent: true, screen: 'scanning', loading: true }));
+    setState(prev => ({ ...prev, question, screen: 'scanning', loading: true }));
     
     try {
-      const result = await analyzeProject(state.question, state.mode, state.filters);
+      const result = await analyzeProject(question, state.mode, state.filters);
       setState(prev => ({
         ...prev,
         result,
@@ -73,7 +68,7 @@ export const App: React.FC<AppProps> = ({ config }) => {
         screen: 'home',
       }));
     }
-  }, [state.question, state.mode, state.filters, analyzeProject]);
+  }, [state.mode, state.filters, analyzeProject]);
 
   const renderScreen = () => {
     switch (state.screen) {
@@ -83,14 +78,6 @@ export const App: React.FC<AppProps> = ({ config }) => {
             onQuestionSubmit={handleQuestionSubmit}
             onModeChange={handleModeChange}
             currentMode={state.mode}
-          />
-        );
-      case 'privacy-preview':
-        return (
-          <PrivacyPreviewScreen
-            onConsent={handlePrivacyConsent}
-            onCancel={() => handleScreenChange('home')}
-            filters={state.filters}
           />
         );
       case 'scanning':

@@ -27,8 +27,6 @@ export const GlobalLayout: React.FC<GlobalLayoutProps> = ({
         return 'Space/→ Next · ← Back · g Jump # · Tab Switch · o Open · q Back';
       case 'qa':
         return '/open path:line · /find "token" · /mode · q Back';
-      case 'privacy-preview':
-        return 'Enter Approve · e Edit · v View · Esc Cancel';
       default:
         return 'Esc/q Back · ? Help · Ctrl+C Exit';
     }
@@ -41,7 +39,6 @@ export const GlobalLayout: React.FC<GlobalLayoutProps> = ({
   const getScreenTitle = () => {
     const titles: Record<ScreenState, string> = {
       home: 'Ask a Question',
-      'privacy-preview': 'Privacy Preview',
       scanning: 'Scanning & Indexing',
       overview: 'Architecture Overview',
       walkthrough: 'Execution Walkthrough',

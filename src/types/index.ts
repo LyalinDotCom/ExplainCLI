@@ -2,7 +2,6 @@ export type AnalysisMode = 'best-effort' | 'deep';
 
 export type ScreenState = 
   | 'home'
-  | 'privacy-preview'
   | 'scanning'
   | 'overview'
   | 'walkthrough'
