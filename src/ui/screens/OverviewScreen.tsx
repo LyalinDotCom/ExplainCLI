@@ -31,57 +31,81 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
 
   return (
     <Box flexDirection="column" paddingY={2}>
-      <Box marginBottom={2}><Text bold color="cyan">📊 Architecture Overview</Text></Box>
+      <Box marginBottom={2}>
+        <Text bold color="cyan">📊 Architecture Overview</Text>
+      </Box>
 
-      <Box flexDirection="column" marginBottom={2}>
-        <Box><Text bold>Frameworks & Technologies:</Text></Box>
+      {/* Frameworks Section */}
+      <Box flexDirection="column" marginBottom={1}>
+        <Text bold>Frameworks & Technologies:</Text>
+      </Box>
+      <Box flexDirection="column" marginBottom={2} paddingLeft={2}>
         {overview.frameworks && Array.isArray(overview.frameworks) && overview.frameworks.length > 0 ? (
           overview.frameworks.map((fw, i) => (
-            <Box key={i}>
-              <Text color="green">  • {fw}</Text>
+            <Box key={`fw-${i}`}>
+              <Text color="green">• {fw}</Text>
             </Box>
           ))
         ) : (
-          <Box><Text color="gray">  No frameworks detected</Text></Box>
+          <Box>
+            <Text color="gray">No frameworks detected</Text>
+          </Box>
         )}
       </Box>
 
-      <Box flexDirection="column" marginBottom={2}>
-        <Box><Text bold>Runtimes:</Text></Box>
+      {/* Runtimes Section */}
+      <Box flexDirection="column" marginBottom={1}>
+        <Text bold>Runtimes:</Text>
+      </Box>
+      <Box flexDirection="column" marginBottom={2} paddingLeft={2}>
         {overview.runtimes && Array.isArray(overview.runtimes) && overview.runtimes.length > 0 ? (
           overview.runtimes.map((rt, i) => (
-            <Box key={i}>
-              <Text color="yellow">  • {rt}</Text>
+            <Box key={`rt-${i}`}>
+              <Text color="yellow">• {rt}</Text>
             </Box>
           ))
         ) : (
-          <Box><Text color="gray">  Runtime not identified</Text></Box>
+          <Box>
+            <Text color="gray">Runtime not identified</Text>
+          </Box>
         )}
       </Box>
 
-      <Box flexDirection="column" marginBottom={2}>
-        <Box><Text bold>Folder Structure:</Text></Box>
-        <Box><Text color="gray">{overview.folderLayout}</Text></Box>
+      {/* Folder Structure Section */}
+      <Box flexDirection="column" marginBottom={1}>
+        <Text bold>Folder Structure:</Text>
+      </Box>
+      <Box flexDirection="column" marginBottom={2} paddingLeft={2}>
+        <Text color="gray">{overview.folderLayout || 'Standard project structure'}</Text>
       </Box>
 
-      <Box flexDirection="column" marginBottom={2}>
-        <Box><Text bold>Main Components:</Text></Box>
-        {overview.mainComponents && Array.isArray(overview.mainComponents) ? (
+      {/* Main Components Section */}
+      <Box flexDirection="column" marginBottom={1}>
+        <Text bold>Main Components:</Text>
+      </Box>
+      <Box flexDirection="column" marginBottom={2} paddingLeft={2}>
+        {overview.mainComponents && Array.isArray(overview.mainComponents) && overview.mainComponents.length > 0 ? (
           overview.mainComponents.map((comp, i) => (
-            <Box key={i}>
-              <Text color="cyan">  • {comp}</Text>
+            <Box key={`comp-${i}`}>
+              <Text color="cyan">• {typeof comp === 'string' ? comp : String(comp)}</Text>
             </Box>
           ))
         ) : (
-          <Box><Text color="gray">  No components identified</Text></Box>
+          <Box>
+            <Text color="gray">No components identified</Text>
+          </Box>
         )}
       </Box>
 
-      <Box flexDirection="column" marginBottom={2}>
-        <Box><Text bold>Control Flow:</Text></Box>
-        <Box><Text color="gray">{overview.controlFlow}</Text></Box>
+      {/* Control Flow Section */}
+      <Box flexDirection="column" marginBottom={1}>
+        <Text bold>Control Flow:</Text>
+      </Box>
+      <Box flexDirection="column" marginBottom={2} paddingLeft={2}>
+        <Text color="gray">{overview.controlFlow || 'Application flow'}</Text>
       </Box>
 
+      {/* Navigation Instructions */}
       <Box marginTop={3} flexDirection="column">
         <Text bold>🎯 Ready to explore!</Text>
         <Box marginTop={1}>
