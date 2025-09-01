@@ -2,7 +2,6 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import type { 
   Config, 
   IndexedProject, 
-  AnalysisMode, 
   AnalysisResult,
   WalkthroughStep,
   ArchitectureOverview 
@@ -27,22 +26,19 @@ export class GeminiAnalyzer {
 
   async analyze(
     question: string,
-    project: IndexedProject,
-    mode: AnalysisMode
+    project: IndexedProject
   ): Promise<AnalysisResult> {
     // First, trace the actual code execution path
     const walkthrough = await this.codeTracer.traceExecutionPath(question, project);
     
-    // Prepare context based on mode
-    const context = mode === 'deep' 
-      ? await this.prepareDeepContext(project, question)
-      : await this.prepareBestEffortContext(project, question);
+    // Prepare deep context
+    const context = await this.prepareDeepContext(project, question);
 
     // Redact sensitive information
     const safeContext = this.security.redactSensitiveData(context);
 
     // Build the prompt
-    const prompt = this.buildPrompt(question, safeContext, mode);
+    const prompt = this.buildPrompt(question, safeContext, 'deep');
 
     // Send to Gemini for overview and answer
     const result = await this.model.generateContent(prompt);
@@ -184,7 +180,7 @@ export class GeminiAnalyzer {
     return result;
   }
 
-  private buildPrompt(question: string, context: string, mode: AnalysisMode): string {
+  private buildPrompt(question: string, context: string, mode: string): string {
     return `You are a code educator analyzing a codebase. Be precise and concise. 
 Cite file:line for claims tied to code. Prefer truth over speculation. 
 Trace behavior from entry points through the call graph. If unsure, say so.

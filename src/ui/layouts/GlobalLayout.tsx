@@ -1,19 +1,17 @@
 import React from 'react';
 import { Box, Text, useStdout } from 'ink';
 import Gradient from 'ink-gradient';
-import type { AnalysisMode, ScreenState } from '../../types/index.js';
+import type { ScreenState } from '../../types/index.js';
 
 interface GlobalLayoutProps {
   children: React.ReactNode;
   projectName: string;
-  mode: AnalysisMode;
   screen: ScreenState;
 }
 
 export const GlobalLayout: React.FC<GlobalLayoutProps> = ({
   children,
   projectName,
-  mode,
   screen,
 }) => {
   const { stdout } = useStdout();
@@ -32,9 +30,6 @@ export const GlobalLayout: React.FC<GlobalLayoutProps> = ({
     }
   };
 
-  const getModeDisplay = () => {
-    return mode === 'deep' ? 'Deep Inspection' : 'Best-Effort';
-  };
 
   const getScreenTitle = () => {
     const titles: Record<ScreenState, string> = {
@@ -67,7 +62,7 @@ export const GlobalLayout: React.FC<GlobalLayoutProps> = ({
         <Box>
           <Text color="yellow">{getScreenTitle()}</Text>
           <Text color="gray"> · </Text>
-          <Text color="green">{getModeDisplay()}</Text>
+          <Text color="green">Deep Analysis</Text>
         </Box>
       </Box>
 

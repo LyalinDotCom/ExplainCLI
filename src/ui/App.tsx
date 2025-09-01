@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { Box, useInput, useApp } from 'ink';
-import type { Config, AppState, ScreenState, AnalysisMode } from '../types/index.js';
+import type { Config, AppState, ScreenState } from '../types/index.js';
 import { GlobalLayout } from './layouts/GlobalLayout.js';
 import { HomeScreen } from './screens/HomeScreen.js';
 import { ScanningScreen } from './screens/ScanningScreen.js';
@@ -20,14 +20,12 @@ export const App: React.FC<AppProps> = ({ config }) => {
   
   const [state, setState] = useState<AppState>({
     screen: 'home',
-    mode: 'best-effort',
     question: '',
     currentStep: 0,
     filters: {
       include: ['**/*.{js,jsx,ts,tsx,py,java,go,rs,cpp,c,cs,rb,php,swift,kt,json,yaml,yml,toml,md}'],
       exclude: ['**/node_modules/**', '**/.git/**', '**/dist/**', '**/build/**', '**/.next/**', '**/coverage/**'],
     },
-    privacyConsent: false,
     loading: false,
   });
   
@@ -37,6 +35,7 @@ export const App: React.FC<AppProps> = ({ config }) => {
     currentFile: '',
     entryPoints: 0,
     frameworks: [] as string[],
+    insights: 0,
   });
 
   useInput((input: string, key: any) => {
@@ -53,15 +52,27 @@ export const App: React.FC<AppProps> = ({ config }) => {
     setState(prev => ({ ...prev, screen }));
   }, []);
 
-  const handleModeChange = useCallback((mode: AnalysisMode) => {
-    setState(prev => ({ ...prev, mode }));
-  }, []);
-
   const handleQuestionSubmit = useCallback(async (question: string) => {
     setState(prev => ({ ...prev, question, screen: 'scanning', loading: true }));
     
+    // Reset progress
+    setScanProgress({
+      filesScanned: 0,
+      totalFiles: 0,
+      currentFile: '',
+      entryPoints: 0,
+      frameworks: [],
+      insights: 0,
+    });
+    
     try {
-      const result = await analyzeProject(question, state.mode, state.filters);
+      const result = await analyzeProject(
+        question, 
+        state.filters,
+        (progress) => {
+          setScanProgress(prev => ({ ...prev, ...progress }));
+        }
+      );
       setState(prev => ({
         ...prev,
         result,
@@ -76,7 +87,7 @@ export const App: React.FC<AppProps> = ({ config }) => {
         screen: 'home',
       }));
     }
-  }, [state.mode, state.filters, analyzeProject]);
+  }, [state.filters, analyzeProject]);
 
   const renderScreen = () => {
     switch (state.screen) {
@@ -84,8 +95,6 @@ export const App: React.FC<AppProps> = ({ config }) => {
         return (
           <HomeScreen
             onQuestionSubmit={handleQuestionSubmit}
-            onModeChange={handleModeChange}
-            currentMode={state.mode}
           />
         );
       case 'scanning':
@@ -130,7 +139,6 @@ export const App: React.FC<AppProps> = ({ config }) => {
   return (
     <GlobalLayout
       projectName={state.project?.name || 'No Project'}
-      mode={state.mode}
       screen={state.screen}
     >
       {renderScreen()}

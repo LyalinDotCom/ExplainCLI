@@ -1,39 +1,21 @@
 import React, { useState } from 'react';
-import { Box, Text, useInput } from 'ink';
+import { Box, Text } from 'ink';
 import TextInput from 'ink-text-input';
-import SelectInput from 'ink-select-input';
-import type { AnalysisMode } from '../../types/index.js';
 
 interface HomeScreenProps {
   onQuestionSubmit: (question: string) => void;
-  onModeChange: (mode: AnalysisMode) => void;
-  currentMode: AnalysisMode;
 }
 
 export const HomeScreen: React.FC<HomeScreenProps> = ({
   onQuestionSubmit,
-  onModeChange,
-  currentMode,
 }) => {
   const [question, setQuestion] = useState('');
-  const [focusedElement, setFocusedElement] = useState<'input' | 'mode'>('input');
-
-  useInput((input: string, key: any) => {
-    if (key.tab) {
-      setFocusedElement(prev => prev === 'input' ? 'mode' : 'input');
-    }
-  });
 
   const handleSubmit = () => {
     if (question.trim()) {
       onQuestionSubmit(question);
     }
   };
-
-  const modeItems = [
-    { label: '⚡ Best-Effort Mode - Fast heuristics, partial reads', value: 'best-effort' },
-    { label: '🔍 Deep Inspection Mode - Exhaustive analysis', value: 'deep' },
-  ];
 
   return (
     <Box flexDirection="column" paddingY={2}>
@@ -42,30 +24,29 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
       </Box>
 
       <Box marginBottom={2}>
-        <Text color={focusedElement === 'input' ? 'green' : 'gray'}>{'> '}</Text>
+        <Text color="green">{'> '}</Text>
         <TextInput
           value={question}
           onChange={setQuestion}
           onSubmit={handleSubmit}
           placeholder="e.g., Where is OAuth token verification implemented?"
-          focus={focusedElement === 'input'}
-        />
-      </Box>
-
-      <Box flexDirection="column" marginBottom={2}>
-        <Box marginBottom={1}><Text bold>Analysis Mode:</Text></Box>
-        <SelectInput
-          items={modeItems}
-          onSelect={(item) => onModeChange(item.value as AnalysisMode)}
-          initialIndex={currentMode === 'deep' ? 1 : 0}
-          isFocused={focusedElement === 'mode'}
+          focus={true}
         />
       </Box>
 
       <Box marginTop={2}>
         <Text color="gray">
-          💡 Tip: Best-Effort mode is faster and works well for most questions.
-          Use Deep mode for comprehensive analysis.
+          🔍 Deep Analysis Mode: I'll thoroughly analyze your codebase,
+        </Text>
+      </Box>
+      <Box>
+        <Text color="gray">
+          examining every relevant file to build a complete understanding.
+        </Text>
+      </Box>
+      <Box marginTop={1}>
+        <Text color="gray">
+          💡 Examples: "How is authentication implemented?" • "Show me the API flow"
         </Text>
       </Box>
     </Box>

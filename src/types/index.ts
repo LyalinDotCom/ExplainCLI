@@ -1,4 +1,4 @@
-export type AnalysisMode = 'best-effort' | 'deep';
+// Removed AnalysisMode - always deep inspection now
 
 export type ScreenState = 
   | 'home'
@@ -89,7 +89,6 @@ export interface PrivacyPreview {
 
 export interface AppState {
   screen: ScreenState;
-  mode: AnalysisMode;
   question: string;
   project?: IndexedProject;
   result?: AnalysisResult;
@@ -98,7 +97,6 @@ export interface AppState {
     include: string[];
     exclude: string[];
   };
-  privacyConsent: boolean;
   loading: boolean;
   error?: string;
 }
