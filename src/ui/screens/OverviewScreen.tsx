@@ -35,16 +35,24 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
 
       <Box flexDirection="column" marginBottom={2}>
         <Text bold>Frameworks & Technologies:</Text>
-        {overview.frameworks.map((fw, i) => (
-          <Text key={i} color="green">  • {fw}</Text>
-        ))}
+        {overview.frameworks && Array.isArray(overview.frameworks) && overview.frameworks.length > 0 ? (
+          overview.frameworks.map((fw, i) => (
+            <Text key={i} color="green">  • {fw}</Text>
+          ))
+        ) : (
+          <Text color="gray">  No frameworks detected</Text>
+        )}
       </Box>
 
       <Box flexDirection="column" marginBottom={2}>
         <Text bold>Runtimes:</Text>
-        {overview.runtimes.map((rt, i) => (
-          <Text key={i} color="yellow">  • {rt}</Text>
-        ))}
+        {overview.runtimes && Array.isArray(overview.runtimes) && overview.runtimes.length > 0 ? (
+          overview.runtimes.map((rt, i) => (
+            <Text key={i} color="yellow">  • {rt}</Text>
+          ))
+        ) : (
+          <Text color="gray">  Runtime not identified</Text>
+        )}
       </Box>
 
       <Box flexDirection="column" marginBottom={2}>
@@ -54,9 +62,13 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
 
       <Box flexDirection="column" marginBottom={2}>
         <Text bold>Main Components:</Text>
-        {overview.mainComponents.map((comp, i) => (
-          <Text key={i} color="cyan">  • {comp}</Text>
-        ))}
+        {overview.mainComponents && Array.isArray(overview.mainComponents) ? (
+          overview.mainComponents.map((comp, i) => (
+            <Text key={i} color="cyan">  • {comp}</Text>
+          ))
+        ) : (
+          <Text color="gray">  No components identified</Text>
+        )}
       </Box>
 
       <Box flexDirection="column" marginBottom={2}>

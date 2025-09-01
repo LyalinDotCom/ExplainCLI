@@ -102,7 +102,9 @@ Format as JSON:
       
       // Ensure mainComponents is an array of strings
       let mainComponents = json.mainComponents || [];
-      if (Array.isArray(mainComponents)) {
+      if (!Array.isArray(mainComponents)) {
+        mainComponents = [];
+      } else {
         mainComponents = mainComponents.map((comp: any) => {
           if (typeof comp === 'string') return comp;
           if (comp && typeof comp === 'object' && comp.file) return comp.file;
