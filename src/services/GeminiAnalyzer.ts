@@ -235,12 +235,23 @@ Format your response as JSON with this structure:
       
       const parsed = JSON.parse(jsonMatch[0]);
       
+      // Ensure mainComponents is an array of strings
+      let mainComponents = parsed.overview?.mainComponents || [];
+      if (Array.isArray(mainComponents)) {
+        mainComponents = mainComponents.map((comp: any) => {
+          if (typeof comp === 'string') return comp;
+          if (comp && typeof comp === 'object' && comp.file) return comp.file;
+          if (comp && typeof comp === 'object' && comp.name) return comp.name;
+          return String(comp);
+        });
+      }
+      
       // Convert to our types
       const overview: ArchitectureOverview = {
         frameworks: parsed.overview?.frameworks || project.frameworks,
         runtimes: parsed.overview?.runtimes || [],
         folderLayout: parsed.overview?.folderLayout || 'Standard project structure',
-        mainComponents: parsed.overview?.mainComponents || [],
+        mainComponents,
         controlFlow: parsed.overview?.controlFlow || 'Request/response flow',
       };
 

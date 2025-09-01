@@ -99,11 +99,23 @@ Format as JSON:
     
     try {
       const json = JSON.parse(text.match(/\{[\s\S]*\}/)?.[0] || '{}');
+      
+      // Ensure mainComponents is an array of strings
+      let mainComponents = json.mainComponents || [];
+      if (Array.isArray(mainComponents)) {
+        mainComponents = mainComponents.map((comp: any) => {
+          if (typeof comp === 'string') return comp;
+          if (comp && typeof comp === 'object' && comp.file) return comp.file;
+          if (comp && typeof comp === 'object' && comp.name) return comp.name;
+          return String(comp);
+        });
+      }
+      
       return {
         frameworks: json.frameworks || project.frameworks,
         runtimes: json.runtimes || ['Node.js'],
         folderLayout: json.folderLayout || 'Standard project structure',
-        mainComponents: json.mainComponents || [],
+        mainComponents,
         controlFlow: json.controlFlow || 'Request/response flow',
       };
     } catch {
@@ -236,15 +248,23 @@ Return JSON array of important sections:
     
     try {
       const sections = JSON.parse(text.match(/\[[\s\S]*\]/)?.[0] || '[]');
-      return sections.map((section: any, i: number) => ({
-        index: stepIndex * 10 + i,
-        file: file.path,
-        lineRange: [section.lineStart || 1, section.lineEnd || 10],
-        code: section.code || this.extractLines(file.content!, section.lineStart - 1, section.lineEnd),
-        explanation: section.explanation || 'This section contains relevant code',
-        whyRelevant: section.whyRelevant || 'Related to your question',
-        linksTo: section.connections || [],
-      }));
+      return sections.map((section: any, i: number) => {
+        const lineStart = section.lineStart || 1;
+        const lineEnd = section.lineEnd || lineStart + 10;
+        
+        // Always extract code from the original file to avoid corruption
+        const extractedCode = this.extractLines(file.content!, lineStart - 1, lineEnd);
+        
+        return {
+          index: stepIndex * 10 + i,
+          file: file.path,
+          lineRange: [lineStart, lineEnd],
+          code: extractedCode,
+          explanation: section.explanation || 'This section contains relevant code',
+          whyRelevant: section.whyRelevant || 'Related to your question',
+          linksTo: section.connections || [],
+        };
+      });
     } catch {
       // Fallback to basic extraction
       return [{

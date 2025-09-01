@@ -102,8 +102,8 @@ export class ProjectIndexer {
         isEntry: this.isEntryPoint(filePath),
       });
       
-      // Report progress
-      if (onProgress && i % 10 === 0) {
+      // Report progress more frequently
+      if (onProgress) {
         onProgress({ 
           filesScanned: i + 1,
           currentFile: filePath 
