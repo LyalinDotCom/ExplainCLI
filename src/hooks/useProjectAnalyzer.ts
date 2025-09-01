@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import type { Config, AnalysisResult } from '../types/index.js';
+import type { Config, AnalysisResult, IndexedProject } from '../types/index.js';
 import { ProjectIndexer } from '../services/ProjectIndexer.js';
 import { DeepAnalyzer } from '../services/DeepAnalyzer.js';
 
@@ -8,7 +8,7 @@ export const useProjectAnalyzer = (config: Config) => {
     question: string,
     filters: { include: string[]; exclude: string[] },
     onProgress?: (progress: any) => void
-  ): Promise<AnalysisResult> => {
+  ): Promise<{ result: AnalysisResult; project: IndexedProject }> => {
     // Step 1: Index the project with progress callback
     const indexer = new ProjectIndexer(config);
     const project = await indexer.indexProject(process.cwd(), filters, (progress) => {
@@ -29,7 +29,7 @@ export const useProjectAnalyzer = (config: Config) => {
       }
     });
 
-    return result;
+    return { result, project };
   }, [config]);
 
   return { analyzeProject };

@@ -6,18 +6,22 @@ interface OverviewScreenProps {
   overview?: ArchitectureOverview;
   onWalkthrough: () => void;
   onQA: () => void;
+  onSaveReport?: () => void;
 }
 
 export const OverviewScreen: React.FC<OverviewScreenProps> = ({
   overview,
   onWalkthrough,
   onQA,
+  onSaveReport,
 }) => {
   useInput((input: string) => {
     if (input === 'w' || input === ' ') {
       onWalkthrough();
     } else if (input === 'q') {
       onQA();
+    } else if (input === 's' && onSaveReport) {
+      onSaveReport();
     }
   });
 
@@ -115,6 +119,10 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
         <Box>
           <Text color="blue" bold>Press [q]</Text>
           <Text> for Q&A mode to ask follow-up questions</Text>
+        </Box>
+        <Box>
+          <Text color="magenta" bold>Press [s]</Text>
+          <Text> to save full analysis report as Markdown</Text>
         </Box>
       </Box>
     </Box>

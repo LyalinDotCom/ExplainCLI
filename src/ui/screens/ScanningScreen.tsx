@@ -29,12 +29,22 @@ export const ScanningScreen: React.FC<ScanningScreenProps> = ({ progress: scanPr
     return undefined;
   }, [scanProgress?.totalFiles]);
   
-  // Use overall progress if available, otherwise calculate from files
-  const progress = scanProgress?.overallProgress !== undefined 
-    ? scanProgress.overallProgress / 100
-    : scanProgress?.totalFiles 
-    ? scanProgress.filesScanned / scanProgress.totalFiles 
-    : simulatedProgress;
+  // Extract progress from analysis messages if present
+  let progress = simulatedProgress;
+  
+  if (scanProgress?.currentFile && scanProgress.currentFile.startsWith('[')) {
+    // Extract percentage from messages like "[61%] Analyzing..."
+    const match = scanProgress.currentFile.match(/\[(\d+)%\]/);
+    if (match) {
+      progress = parseInt(match[1]) / 100;
+    }
+  } else if (scanProgress?.overallProgress !== undefined) {
+    // Use overall progress from indexing phase
+    progress = scanProgress.overallProgress / 100;
+  } else if (scanProgress?.totalFiles) {
+    // Calculate from file scanning
+    progress = scanProgress.filesScanned / scanProgress.totalFiles;
+  }
     
   const stats = scanProgress || {
     filesScanned: 0,
@@ -43,24 +53,26 @@ export const ScanningScreen: React.FC<ScanningScreenProps> = ({ progress: scanPr
     insights: 0,
   };
 
+  // Determine if we're in analysis phase
+  const isAnalyzing = scanProgress?.currentFile && scanProgress.currentFile.startsWith('[');
+
   return (
     <Box flexDirection="column" paddingY={2}>
+      {/* Header */}
       <Box marginBottom={2}>
         <Text color="cyan">
-          <Spinner type="dots" /> Scanning & Indexing Project...
+          <Spinner type="dots" /> {
+            isAnalyzing
+              ? 'Deep Analysis in Progress...' 
+              : 'Scanning & Indexing Project...'
+          }
         </Text>
       </Box>
 
-      <Box marginBottom={2}>
-        <Text>Progress: </Text>
-        <Text color="green">{'█'.repeat(Math.floor(progress * 20))}</Text>
-        <Text color="gray">{'░'.repeat(20 - Math.floor(progress * 20))}</Text>
-        <Text> {Math.floor(progress * 100)}%</Text>
-      </Box>
-
+      {/* Stats Section */}
       <Box flexDirection="column" marginBottom={2}>
-        {/* Files scanned - only show if we have files */}
-        {(stats.filesScanned > 0 || scanProgress?.totalFiles) ? (
+        {/* Files scanned - only show during indexing */}
+        {!isAnalyzing && (stats.filesScanned > 0 || scanProgress?.totalFiles) ? (
           <Box>
             <Text>📁 Files scanned: </Text>
             <Text color="cyan" bold>{String(stats.filesScanned)}</Text>
@@ -70,35 +82,38 @@ export const ScanningScreen: React.FC<ScanningScreenProps> = ({ progress: scanPr
           </Box>
         ) : null}
         
-        {/* Entry points - only show the count, no total */}
-        {stats.entryPoints > 0 ? (
+        {/* Entry points - only show during indexing */}
+        {!isAnalyzing && stats.entryPoints > 0 ? (
           <Box>
             <Text>🎯 Entry points found: </Text>
             <Text color="green" bold>{String(stats.entryPoints)}</Text>
           </Box>
         ) : null}
         
-        {stats.frameworks && stats.frameworks.length > 0 ? (
+        {/* Frameworks - only show during indexing */}
+        {!isAnalyzing && stats.frameworks && stats.frameworks.length > 0 ? (
           <Box>
             <Text>🔧 Frameworks: </Text>
             <Text color="yellow">{stats.frameworks.join(', ')}</Text>
           </Box>
         ) : null}
         
-        {scanProgress?.insights !== undefined && scanProgress.insights > 0 ? (
+        {/* Insights - only show during indexing */}
+        {!isAnalyzing && scanProgress?.insights !== undefined && scanProgress.insights > 0 ? (
           <Box>
             <Text>💡 Insights discovered: </Text>
             <Text color="magenta" bold>{String(scanProgress.insights)}</Text>
           </Box>
         ) : null}
         
+        {/* Current status - show analysis messages prominently */}
         {scanProgress?.currentFile ? (
           <Box marginTop={1}>
-            {scanProgress.currentFile.startsWith('[') ? (
-              // This is a progress message with percentage
+            {isAnalyzing ? (
+              // This is a progress message with percentage - show it prominently
               <Text bold color="cyan">{scanProgress.currentFile}</Text>
             ) : (
-              // This is a file path
+              // This is a file path during indexing
               <Text color="gray">
                 Current: {scanProgress.currentFile.length > 50 
                   ? '...' + scanProgress.currentFile.slice(-47) 
@@ -109,15 +124,17 @@ export const ScanningScreen: React.FC<ScanningScreenProps> = ({ progress: scanPr
         ) : null}
       </Box>
 
-      <Box marginTop={2}>
-        <Text color="gray">
-          {scanProgress?.stage || (
-            progress < 0.3 ? 'Discovering files...' :
-            progress < 0.6 ? 'Building dependency graph...' :
-            progress < 0.9 ? 'Analyzing code patterns...' :
-            'Finalizing analysis...'
-          )}
-        </Text>
+      {/* Spacer to push progress bar to bottom */}
+      <Box flexGrow={1} />
+
+      {/* Progress Bar at Bottom */}
+      <Box flexDirection="column">
+        <Box marginBottom={1}>
+          <Text>Progress: </Text>
+          <Text color="green">{'█'.repeat(Math.floor(progress * 20))}</Text>
+          <Text color="gray">{'░'.repeat(20 - Math.floor(progress * 20))}</Text>
+          <Text> {Math.floor(progress * 100)}%</Text>
+        </Box>
       </Box>
     </Box>
   );

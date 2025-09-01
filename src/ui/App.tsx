@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
-import { Box, useInput, useApp } from 'ink';
-import type { Config, AppState, ScreenState } from '../types/index.js';
+import { Box, Text, useInput, useApp } from 'ink';
+import type { Config, AppState, ScreenState, IndexedProject } from '../types/index.js';
 import { GlobalLayout } from './layouts/GlobalLayout.js';
 import { HomeScreen } from './screens/HomeScreen.js';
 import { ScanningScreen } from './screens/ScanningScreen.js';
@@ -9,6 +9,7 @@ import { WalkthroughScreen } from './screens/WalkthroughScreen.js';
 import { QAScreen } from './screens/QAScreen.js';
 import { ResultsScreen } from './screens/ResultsScreen.js';
 import { useProjectAnalyzer } from '../hooks/useProjectAnalyzer.js';
+import { ReportGenerator } from '../services/ReportGenerator.js';
 
 interface AppProps {
   config: Config;
@@ -28,6 +29,9 @@ export const App: React.FC<AppProps> = ({ config }) => {
     },
     loading: false,
   });
+  
+  const [savedProject, setSavedProject] = useState<IndexedProject | null>(null);
+  const [reportSaved, setReportSaved] = useState<string | null>(null);
   
   const [scanProgress, setScanProgress] = useState({
     filesScanned: 0,
@@ -52,6 +56,22 @@ export const App: React.FC<AppProps> = ({ config }) => {
     setState(prev => ({ ...prev, screen }));
   }, []);
 
+  const handleSaveReport = useCallback(async () => {
+    if (!state.result || !savedProject) return;
+    
+    try {
+      const generator = new ReportGenerator();
+      const filename = await generator.generateMarkdownReport(
+        state.question,
+        state.result,
+        savedProject
+      );
+      setReportSaved(filename);
+    } catch (error) {
+      console.error('Failed to save report:', error);
+    }
+  }, [state.result, state.question, savedProject]);
+
   const handleQuestionSubmit = useCallback(async (question: string) => {
     setState(prev => ({ ...prev, question, screen: 'scanning', loading: true }));
     
@@ -66,13 +86,14 @@ export const App: React.FC<AppProps> = ({ config }) => {
     });
     
     try {
-      const result = await analyzeProject(
+      const { result, project } = await analyzeProject(
         question, 
         state.filters,
         (progress) => {
           setScanProgress(prev => ({ ...prev, ...progress }));
         }
       );
+      setSavedProject(project);
       setState(prev => ({
         ...prev,
         result,
@@ -101,11 +122,19 @@ export const App: React.FC<AppProps> = ({ config }) => {
         return <ScanningScreen progress={scanProgress} />;
       case 'overview':
         return (
-          <OverviewScreen
-            overview={state.result?.overview}
-            onWalkthrough={() => handleScreenChange('walkthrough')}
-            onQA={() => handleScreenChange('qa')}
-          />
+          <>
+            <OverviewScreen
+              overview={state.result?.overview}
+              onWalkthrough={() => handleScreenChange('walkthrough')}
+              onQA={() => handleScreenChange('qa')}
+              onSaveReport={handleSaveReport}
+            />
+            {reportSaved && (
+              <Box marginTop={1}>
+                <Text color="green">✓ Report saved to: {reportSaved}</Text>
+              </Box>
+            )}
+          </>
         );
       case 'walkthrough':
         return (
