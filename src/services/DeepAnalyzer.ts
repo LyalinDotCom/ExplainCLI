@@ -29,35 +29,61 @@ export class DeepAnalyzer {
     project: IndexedProject,
     onProgress?: (message: string) => void
   ): Promise<AnalysisResult> {
-    if (onProgress) onProgress('Starting deep analysis...');
+    const totalSteps = 6;
+    let currentStep = 0;
+    
+    const updateProgress = (step: string, detail?: string) => {
+      currentStep++;
+      if (onProgress) {
+        const percentage = Math.floor((currentStep / totalSteps) * 100);
+        onProgress(`[${percentage}%] ${step}${detail ? ': ' + detail : ''}`);
+      }
+    };
 
     // Step 1: Analyze overall architecture
+    if (onProgress) onProgress('[0%] 🏗️ Analyzing project architecture...');
     const overview = await this.analyzeArchitecture(project, question);
-    if (onProgress) onProgress('Analyzed architecture');
+    updateProgress('✓ Architecture analyzed', `${project.frameworks.join(', ')}`);
 
     // Step 2: Find relevant files for the question
+    if (onProgress) onProgress('[17%] 🔍 Searching for relevant files...');
     const relevantFiles = await this.findRelevantFiles(project, question);
-    if (onProgress) onProgress(`Found ${relevantFiles.length} relevant files`);
+    updateProgress('✓ Found relevant files', `${relevantFiles.length} files to analyze`);
 
     // Step 3: Build execution path through the code
+    if (onProgress) onProgress('[33%] 🗺️ Building code execution path...');
     const executionPath = await this.buildExecutionPath(relevantFiles, question, project);
-    if (onProgress) onProgress('Built execution path');
+    updateProgress('✓ Execution path mapped', `${executionPath.length} key files`);
 
     // Step 4: Analyze each file in the path with Gemini
+    if (onProgress) onProgress('[50%] 📖 Performing deep file analysis...');
     const walkthrough: WalkthroughStep[] = [];
     for (let i = 0; i < executionPath.length; i++) {
       const file = executionPath[i];
-      if (onProgress) onProgress(`Analyzing ${file.path} (${i + 1}/${executionPath.length})`);
+      const fileName = file.path.split('/').pop() || file.path;
+      if (onProgress) {
+        const fileProgress = 50 + Math.floor((i / executionPath.length) * 33);
+        onProgress(`[${fileProgress}%] 📄 Analyzing: ${fileName} (${i + 1}/${executionPath.length})`);
+      }
       
       const steps = await this.analyzeFile(file, question, i, project);
       walkthrough.push(...steps);
+      
+      // Show what we found in this file
+      if (onProgress && steps.length > 0) {
+        onProgress(`[${50 + Math.floor(((i + 1) / executionPath.length) * 33)}%] ✓ Found ${steps.length} important section${steps.length > 1 ? 's' : ''} in ${fileName}`);
+      }
     }
 
     // Step 5: Analyze how everything connects
+    if (onProgress) onProgress('[83%] 🔗 Analyzing code connections and dependencies...');
     const connections = await this.analyzeConnections(walkthrough, project, question);
+    updateProgress('✓ Connections mapped', `${connections.length} relationships found`);
     
     // Step 6: Generate comprehensive answer
+    if (onProgress) onProgress('[95%] 💡 Generating comprehensive answer...');
     const answer = await this.generateAnswer(question, overview, walkthrough, connections);
+    if (onProgress) onProgress('[100%] ✅ Analysis complete!');
 
     return {
       overview,

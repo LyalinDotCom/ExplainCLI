@@ -118,7 +118,7 @@ export const WalkthroughScreen: React.FC<WalkthroughScreenProps> = ({
     return (
       <Box flexDirection="column">
         <Box marginBottom={1} justifyContent="space-between">
-          <Text bold>📄 {step.file}</Text>
+          <Text bold>📄 {step.file} (Zoomed View)</Text>
           <Text color="gray">
             Lines {scrollOffset + 1}-{Math.min(scrollOffset + maxVisibleLines, fileContent.length)} of {fileContent.length}
           </Text>
@@ -144,6 +144,45 @@ export const WalkthroughScreen: React.FC<WalkthroughScreenProps> = ({
         <Box marginTop={1}>
           <Text color="gray">
             ↑↓ Scroll · PgUp/PgDn Page · Highlighted: Lines {highlightStart}-{highlightEnd}
+          </Text>
+        </Box>
+      </Box>
+    );
+  };
+
+  const renderFullFileView = () => {
+    const visibleLines = fileContent.slice(scrollOffset, scrollOffset + maxFullFileLines);
+    const [highlightStart, highlightEnd] = step.lineRange;
+    
+    return (
+      <Box flexDirection="column">
+        <Box marginBottom={1} justifyContent="space-between">
+          <Text bold>📄 {step.file} (Full File View)</Text>
+          <Text color="gray">
+            Lines {scrollOffset + 1}-{Math.min(scrollOffset + maxFullFileLines, fileContent.length)} of {fileContent.length}
+          </Text>
+        </Box>
+        <Box borderStyle="single" borderColor="blue" padding={1} flexDirection="column">
+          {visibleLines.map((line, i) => {
+            const lineNum = scrollOffset + i + 1;
+            const isHighlighted = lineNum >= highlightStart && lineNum <= highlightEnd;
+            
+            return (
+              <Box key={i}>
+                <Text color="gray">{String(lineNum).padStart(4, ' ')} │ </Text>
+                <Text 
+                  color={isHighlighted ? 'yellow' : (line.trim().startsWith('//') || line.trim().startsWith('/*') || line.trim().startsWith('*') ? 'gray' : 'white')}
+                  dimColor={!isHighlighted}
+                >
+                  {line || ' '}
+                </Text>
+              </Box>
+            );
+          })}
+        </Box>
+        <Box marginTop={1}>
+          <Text color="gray">
+            ↑↓ Scroll · PgUp/PgDn Page · Important section highlighted: Lines {highlightStart}-{highlightEnd}
           </Text>
         </Box>
       </Box>
@@ -191,12 +230,14 @@ export const WalkthroughScreen: React.FC<WalkthroughScreenProps> = ({
           Step {currentStep + 1}/{steps.length}
         </Text>
         <Text color="gray">
-          [{viewMode === 'code' ? 'CODE VIEW' : 'EXPLANATION'}]
+          [{viewMode === 'code' ? 'ZOOMED VIEW' : viewMode === 'fullfile' ? 'FULL FILE' : 'EXPLANATION'}]
         </Text>
       </Box>
 
       {/* Main Content */}
-      {viewMode === 'code' ? renderCodeView() : renderExplanationView()}
+      {viewMode === 'code' ? renderCodeView() : 
+       viewMode === 'fullfile' ? renderFullFileView() : 
+       renderExplanationView()}
 
       {/* Navigation Footer */}
       <Box marginTop={2} flexDirection="column">
@@ -205,8 +246,10 @@ export const WalkthroughScreen: React.FC<WalkthroughScreenProps> = ({
           <Text> Next · </Text>
           <Text color="yellow" bold>←</Text>
           <Text> Previous · </Text>
+          <Text color="magenta" bold>f</Text>
+          <Text> Full File · </Text>
           <Text color="blue" bold>Tab</Text>
-          <Text> Toggle View · </Text>
+          <Text> Cycle Views · </Text>
           <Text color="red" bold>q</Text>
           <Text> Back</Text>
         </Box>

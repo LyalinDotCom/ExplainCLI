@@ -94,10 +94,17 @@ export const ScanningScreen: React.FC<ScanningScreenProps> = ({ progress: scanPr
         
         {scanProgress?.currentFile ? (
           <Box marginTop={1}>
-            <Text color="gray">Analyzing: {scanProgress.currentFile.length > 50 
-              ? '...' + scanProgress.currentFile.slice(-47) 
-              : scanProgress.currentFile}
-            </Text>
+            {scanProgress.currentFile.startsWith('[') ? (
+              // This is a progress message with percentage
+              <Text bold color="cyan">{scanProgress.currentFile}</Text>
+            ) : (
+              // This is a file path
+              <Text color="gray">
+                Current: {scanProgress.currentFile.length > 50 
+                  ? '...' + scanProgress.currentFile.slice(-47) 
+                  : scanProgress.currentFile}
+              </Text>
+            )}
           </Box>
         ) : null}
       </Box>
