@@ -13,23 +13,71 @@ export class ProjectIndexer {
   ): Promise<IndexedProject> {
     const projectName = path.basename(rootDir);
     
-    // Discover files with progress
-    const files = await this.discoverFiles(rootDir, filters, onProgress);
+    // Track overall progress through stages
+    const updateOverallProgress = (stage: string, stageProgress: number = 100) => {
+      if (onProgress) {
+        onProgress({ 
+          stage,
+          stageProgress,
+          currentFile: stage
+        });
+      }
+    };
     
-    // Find entry points and report
+    // Stage 1: Discover files (0-40%)
+    updateOverallProgress('Discovering files...', 0);
+    const files = await this.discoverFiles(rootDir, filters, (progress) => {
+      if (onProgress) {
+        const overallProgress = Math.min(40, (progress.filesScanned || 0) / Math.max(1, progress.totalFiles || 1) * 40);
+        onProgress({
+          ...progress,
+          overallProgress,
+          stage: 'Discovering files'
+        });
+      }
+    });
+    
+    // Stage 2: Find entry points (40-50%)
+    updateOverallProgress('Finding entry points...', 40);
     const entryPoints = this.findEntryPoints(files);
     if (onProgress) {
-      onProgress({ entryPoints: entryPoints.length });
+      onProgress({ 
+        entryPoints: entryPoints.length,
+        overallProgress: 50,
+        stage: 'Entry points found'
+      });
     }
     
-    // Detect frameworks and report
+    // Stage 3: Detect frameworks (50-60%)
+    updateOverallProgress('Detecting frameworks...', 50);
     const frameworks = await this.detectFrameworks(rootDir, files);
     if (onProgress) {
-      onProgress({ frameworks });
+      onProgress({ 
+        frameworks,
+        overallProgress: 60,
+        stage: 'Frameworks detected'
+      });
     }
     
+    // Stage 4: Detect languages (60-70%)
+    updateOverallProgress('Analyzing languages...', 60);
     const languages = this.detectLanguages(files);
+    if (onProgress) {
+      onProgress({ 
+        overallProgress: 70,
+        stage: 'Languages analyzed'
+      });
+    }
+    
+    // Stage 5: Build import graph (70-100%)
+    updateOverallProgress('Building dependency graph...', 70);
     const importGraph = await this.buildImportGraph(files);
+    if (onProgress) {
+      onProgress({ 
+        overallProgress: 100,
+        stage: 'Indexing complete'
+      });
+    }
 
     const totalSize = files.reduce((sum, f) => sum + f.size, 0);
 

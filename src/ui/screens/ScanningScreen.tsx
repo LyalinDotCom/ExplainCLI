@@ -10,6 +10,8 @@ interface ScanningScreenProps {
     entryPoints: number;
     frameworks: string[];
     insights?: number;
+    overallProgress?: number;
+    stage?: string;
   };
 }
 
@@ -27,7 +29,10 @@ export const ScanningScreen: React.FC<ScanningScreenProps> = ({ progress: scanPr
     return undefined;
   }, [scanProgress?.totalFiles]);
   
-  const progress = scanProgress?.totalFiles 
+  // Use overall progress if available, otherwise calculate from files
+  const progress = scanProgress?.overallProgress !== undefined 
+    ? scanProgress.overallProgress / 100
+    : scanProgress?.totalFiles 
     ? scanProgress.filesScanned / scanProgress.totalFiles 
     : simulatedProgress;
     
@@ -99,10 +104,12 @@ export const ScanningScreen: React.FC<ScanningScreenProps> = ({ progress: scanPr
 
       <Box marginTop={2}>
         <Text color="gray">
-          {progress < 0.3 ? 'Discovering files...' :
-           progress < 0.6 ? 'Building dependency graph...' :
-           progress < 0.9 ? 'Analyzing code patterns...' :
-           'Finalizing analysis...'}
+          {scanProgress?.stage || (
+            progress < 0.3 ? 'Discovering files...' :
+            progress < 0.6 ? 'Building dependency graph...' :
+            progress < 0.9 ? 'Analyzing code patterns...' :
+            'Finalizing analysis...'
+          )}
         </Text>
       </Box>
     </Box>
