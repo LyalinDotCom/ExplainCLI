@@ -34,46 +34,52 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
       <Box marginBottom={2}><Text bold color="cyan">📊 Architecture Overview</Text></Box>
 
       <Box flexDirection="column" marginBottom={2}>
-        <Text bold>Frameworks & Technologies:</Text>
+        <Box><Text bold>Frameworks & Technologies:</Text></Box>
         {overview.frameworks && Array.isArray(overview.frameworks) && overview.frameworks.length > 0 ? (
           overview.frameworks.map((fw, i) => (
-            <Text key={i} color="green">  • {fw}</Text>
+            <Box key={i}>
+              <Text color="green">  • {fw}</Text>
+            </Box>
           ))
         ) : (
-          <Text color="gray">  No frameworks detected</Text>
+          <Box><Text color="gray">  No frameworks detected</Text></Box>
         )}
       </Box>
 
       <Box flexDirection="column" marginBottom={2}>
-        <Text bold>Runtimes:</Text>
+        <Box><Text bold>Runtimes:</Text></Box>
         {overview.runtimes && Array.isArray(overview.runtimes) && overview.runtimes.length > 0 ? (
           overview.runtimes.map((rt, i) => (
-            <Text key={i} color="yellow">  • {rt}</Text>
+            <Box key={i}>
+              <Text color="yellow">  • {rt}</Text>
+            </Box>
           ))
         ) : (
-          <Text color="gray">  Runtime not identified</Text>
+          <Box><Text color="gray">  Runtime not identified</Text></Box>
         )}
       </Box>
 
       <Box flexDirection="column" marginBottom={2}>
-        <Text bold>Folder Structure:</Text>
-        <Text color="gray">{overview.folderLayout}</Text>
+        <Box><Text bold>Folder Structure:</Text></Box>
+        <Box><Text color="gray">{overview.folderLayout}</Text></Box>
       </Box>
 
       <Box flexDirection="column" marginBottom={2}>
-        <Text bold>Main Components:</Text>
+        <Box><Text bold>Main Components:</Text></Box>
         {overview.mainComponents && Array.isArray(overview.mainComponents) ? (
           overview.mainComponents.map((comp, i) => (
-            <Text key={i} color="cyan">  • {comp}</Text>
+            <Box key={i}>
+              <Text color="cyan">  • {comp}</Text>
+            </Box>
           ))
         ) : (
-          <Text color="gray">  No components identified</Text>
+          <Box><Text color="gray">  No components identified</Text></Box>
         )}
       </Box>
 
       <Box flexDirection="column" marginBottom={2}>
-        <Text bold>Control Flow:</Text>
-        <Text color="gray">{overview.controlFlow}</Text>
+        <Box><Text bold>Control Flow:</Text></Box>
+        <Box><Text color="gray">{overview.controlFlow}</Text></Box>
       </Box>
 
       <Box marginTop={3} flexDirection="column">

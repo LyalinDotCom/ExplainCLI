@@ -223,25 +223,24 @@ Return a JSON array of file paths in execution order:
     const prompt = `Analyze this code file in the context of: "${question}"
 
 File: ${file.path}
-Language: ${file.language || 'unknown'}
 
-Code:
-${file.content}
+Identify the most important sections (max 2-3) that help answer the question. 
+Focus on the key logic, not boilerplate or imports.
 
-Identify the most important sections that help answer the question. For each section:
-1. Identify the line range
-2. Explain what the code does
-3. Explain why it's relevant to the question
-4. Note any connections to other files
+For each important section, provide:
+1. The starting line number
+2. The ending line number (should be a focused range, typically 10-30 lines)
+3. Clear explanation of what the code does
+4. Why it's specifically relevant to: "${question}"
+5. What other files it connects to
 
-Return JSON array of important sections:
+Return a JSON array:
 [{
   "lineStart": number,
   "lineEnd": number,
-  "code": "the actual code snippet",
-  "explanation": "what this code does",
-  "whyRelevant": "why this matters for the question",
-  "connections": ["files this connects to"]
+  "explanation": "clear explanation of functionality",
+  "whyRelevant": "specific relevance to the question",
+  "connections": ["file paths it connects to"]
 }]`;
 
     const result = await this.model.generateContent(prompt);
@@ -250,32 +249,44 @@ Return JSON array of important sections:
     
     try {
       const sections = JSON.parse(text.match(/\[[\s\S]*\]/)?.[0] || '[]');
-      return sections.map((section: any, i: number) => {
-        const lineStart = section.lineStart || 1;
-        const lineEnd = section.lineEnd || lineStart + 10;
-        
-        // Always extract code from the original file to avoid corruption
-        const extractedCode = this.extractLines(file.content!, lineStart - 1, lineEnd);
+      
+      // Limit to max 3 sections per file
+      return sections.slice(0, 3).map((section: any, i: number) => {
+        const lineStart = Math.max(1, section.lineStart || 1);
+        const lineEnd = Math.max(lineStart, section.lineEnd || lineStart + 20);
         
         return {
           index: stepIndex * 10 + i,
           file: file.path,
           lineRange: [lineStart, lineEnd],
-          code: extractedCode,
-          explanation: section.explanation || 'This section contains relevant code',
-          whyRelevant: section.whyRelevant || 'Related to your question',
+          code: '', // We'll load this in the UI
+          explanation: section.explanation || 'This section implements key functionality',
+          whyRelevant: section.whyRelevant || `Relevant to: ${question}`,
           linksTo: section.connections || [],
         };
       });
     } catch {
-      // Fallback to basic extraction
+      // Fallback - highlight the most important part of the file
+      const lines = file.content!.split('\n');
+      
+      // Try to find a meaningful section (skip imports, find functions/classes)
+      let startLine = 1;
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (line && !line.startsWith('import') && !line.startsWith('from') && 
+            !line.startsWith('//') && !line.startsWith('/*') && !line.startsWith('*')) {
+          startLine = i + 1;
+          break;
+        }
+      }
+      
       return [{
         index: stepIndex,
         file: file.path,
-        lineRange: [1, Math.min(50, file.content!.split('\n').length)],
-        code: file.content!.split('\n').slice(0, 50).join('\n'),
-        explanation: `This file contains code related to ${question}`,
-        whyRelevant: 'Contains relevant implementation',
+        lineRange: [startLine, Math.min(startLine + 30, lines.length)],
+        code: '', // We'll load this in the UI
+        explanation: `Key implementation in ${file.path}`,
+        whyRelevant: `This file is relevant to: ${question}`,
         linksTo: [],
       }];
     }
