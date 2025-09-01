@@ -19,11 +19,12 @@ export const WalkthroughScreen: React.FC<WalkthroughScreenProps> = ({
 }) => {
   const [fileContent, setFileContent] = useState<string[]>([]);
   const [scrollOffset, setScrollOffset] = useState(0);
-  const [viewMode, setViewMode] = useState<'code' | 'explanation'>('code');
+  const [viewMode, setViewMode] = useState<'code' | 'explanation' | 'fullfile'>('code');
   const [loading, setLoading] = useState(true);
   
   const step = steps[currentStep];
-  const maxVisibleLines = 30; // Number of lines to show at once
+  const maxVisibleLines = 30; // Number of lines to show at once in zoomed view
+  const maxFullFileLines = 50; // Number of lines to show in full file view
   
   // Load the full file content
   useEffect(() => {
@@ -62,17 +63,35 @@ export const WalkthroughScreen: React.FC<WalkthroughScreenProps> = ({
     } else if ((key.rightArrow || input === ' ') && currentStep < steps.length - 1) {
       onStepChange(currentStep + 1);
     } else if (key.tab) {
-      setViewMode(viewMode === 'code' ? 'explanation' : 'code');
+      // Cycle through view modes
+      if (viewMode === 'code') {
+        setViewMode('fullfile');
+      } else if (viewMode === 'fullfile') {
+        setViewMode('explanation');
+      } else {
+        setViewMode('code');
+      }
+    } else if (input === 'f') {
+      // Quick toggle to full file view
+      setViewMode(viewMode === 'fullfile' ? 'code' : 'fullfile');
     } else if (input === 'q') {
       onBack();
     } else if (key.upArrow && scrollOffset > 0) {
+      const maxLines = viewMode === 'fullfile' ? maxFullFileLines : maxVisibleLines;
       setScrollOffset(Math.max(0, scrollOffset - 1));
-    } else if (key.downArrow && scrollOffset < fileContent.length - maxVisibleLines) {
-      setScrollOffset(Math.min(fileContent.length - maxVisibleLines, scrollOffset + 1));
+    } else if (key.downArrow) {
+      const maxLines = viewMode === 'fullfile' ? maxFullFileLines : maxVisibleLines;
+      if (scrollOffset < fileContent.length - maxLines) {
+        setScrollOffset(Math.min(fileContent.length - maxLines, scrollOffset + 1));
+      }
     } else if (key.pageUp && scrollOffset > 0) {
-      setScrollOffset(Math.max(0, scrollOffset - maxVisibleLines));
-    } else if (key.pageDown && scrollOffset < fileContent.length - maxVisibleLines) {
-      setScrollOffset(Math.min(fileContent.length - maxVisibleLines, scrollOffset + maxVisibleLines));
+      const maxLines = viewMode === 'fullfile' ? maxFullFileLines : maxVisibleLines;
+      setScrollOffset(Math.max(0, scrollOffset - maxLines));
+    } else if (key.pageDown) {
+      const maxLines = viewMode === 'fullfile' ? maxFullFileLines : maxVisibleLines;
+      if (scrollOffset < fileContent.length - maxLines) {
+        setScrollOffset(Math.min(fileContent.length - maxLines, scrollOffset + maxLines));
+      }
     }
   });
 
