@@ -130,10 +130,8 @@ export const ScanningScreen: React.FC<ScanningScreenProps> = ({ progress: scanPr
       {/* Progress Bar at Bottom */}
       <Box flexDirection="column">
         <Box marginBottom={1}>
-          <Text>Progress: </Text>
           <Text color="green">{'█'.repeat(Math.floor(progress * 20))}</Text>
           <Text color="gray">{'░'.repeat(20 - Math.floor(progress * 20))}</Text>
-          <Text> {Math.floor(progress * 100)}%</Text>
         </Box>
       </Box>
     </Box>
